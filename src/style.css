@@ -1,0 +1,458 @@
+:root {
+  color-scheme: dark;
+  --bg: #14121c;
+  --panel: #1f1b2e;
+  --accent: #b69cff;
+  --text: #ece8f7;
+  --muted: #8f88a8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0 0 16px;
+}
+
+.tag {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Mirror both layers so the picture behaves like a mirror: your left hand
+   appears on the left side of the screen. */
+.stage video,
+.stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+#start {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 14px 28px;
+  font-size: 1.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #1a1330;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#start:disabled {
+  display: none;
+}
+
+#status {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.hud {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.hand {
+  position: relative;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.hand h2 {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.gesture {
+  font-size: 1.5rem;
+  font-weight: 600;
+  min-height: 2rem;
+}
+
+.conf {
+  font-size: 0.85rem;
+  color: var(--muted);
+  min-height: 1.2rem;
+}
+
+.help {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+code {
+  background: var(--panel);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* Small grey label next to a hand's title. */
+.role {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-left: 6px;
+}
+
+/* Progress ring: fills up while a command gesture is held. */
+.ring {
+  --p: 0%;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) var(--p), #3a3452 0);
+  -webkit-mask: radial-gradient(circle, transparent 57%, #000 59%);
+  mask: radial-gradient(circle, transparent 57%, #000 59%);
+}
+
+.ring.done {
+  background: #6fd98f;
+}
+
+.action {
+  font-size: 0.9rem;
+  color: var(--accent);
+  min-height: 1.3rem;
+  margin-top: 4px;
+}
+
+/* Banner that flashes over the camera when a command fires. */
+#toast {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: #6fd98f;
+  color: #0e2a17;
+  font-weight: 700;
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+#toast.show {
+  opacity: 1;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.list {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+ol.list {
+  list-style: none;
+  padding-left: 0;
+}
+
+/* ---- Looper panel ---- */
+.looper-state {
+  font-size: 1.5rem;
+  font-weight: 600;
+  min-height: 2rem;
+}
+
+/* The loop timeline. --bars draws a divider at every bar line. */
+.timeline {
+  --bars: 2;
+  position: relative;
+  height: 26px;
+  margin: 10px 0 8px;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(to right, transparent 0, transparent calc(100% / var(--bars) - 2px), #5a5278 calc(100% / var(--bars) - 2px), #5a5278 calc(100% / var(--bars))),
+    #2a2540;
+  overflow: hidden;
+}
+
+.tl-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: rgba(182, 156, 255, 0.35);
+}
+
+.timeline.recording .tl-fill {
+  background: rgba(255, 107, 107, 0.45);
+}
+
+.timeline.playing .tl-fill {
+  background: rgba(111, 217, 143, 0.35);
+}
+
+.tl-head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: #fff;
+  opacity: 0;
+}
+
+.timeline.active .tl-head {
+  opacity: 1;
+}
+
+.meter {
+  height: 8px;
+  margin-top: 10px;
+  border-radius: 4px;
+  background: #2a2540;
+  overflow: hidden;
+}
+
+.looper .conf {
+  margin-top: 6px;
+}
+
+.meter-bar {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(to right, #6fd98f, #ffd166 75%, #ff6b6b);
+}
+
+/* ---- Settings panel ---- */
+.settings .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.settings label {
+  min-width: 130px;
+  color: var(--muted);
+}
+
+.settings input[type="number"] {
+  width: 70px;
+}
+
+.settings input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.settings input,
+.settings select,
+.settings button {
+  background: #2a2540;
+  color: var(--text);
+  border: 1px solid #3a3452;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+}
+
+.settings button {
+  cursor: pointer;
+}
+
+.settings input:disabled,
+.settings select:disabled {
+  opacity: 0.5;
+}
+
+.unit {
+  color: var(--muted);
+  min-width: 2.5em;
+}
+
+kbd {
+  background: #2a2540;
+  border: 1px solid #3a3452;
+  border-radius: 4px;
+  padding: 0 5px;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .hud,
+  .panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Layers panel ---- */
+.layers-panel {
+  margin-bottom: 16px;
+}
+
+.session-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.session-bar button,
+.layer button {
+  background: #2a2540;
+  color: var(--text);
+  border: 1px solid #3a3452;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.session-bar button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.session-bar button.armed {
+  background: #5a2f3f;
+  border-color: #ff8fa8;
+}
+
+.layers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.layer {
+  display: grid;
+  grid-template-columns: 24px 90px 1fr 34px 34px 110px 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #2a2540;
+  border-radius: 8px;
+}
+
+.layer .lkey {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.layer .lname {
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layer .wave {
+  position: relative;
+  height: 36px;
+  background: #1a1728;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.layer .wave canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.layer .lhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0.9;
+}
+
+.layer button.on-mute {
+  background: #5a2f3f;
+  border-color: #ff8fa8;
+}
+
+.layer button.on-solo {
+  background: #5a4b1f;
+  border-color: #ffd36b;
+}
+
+.layer.dimmed .wave,
+.layer.dimmed .lname {
+  opacity: 0.4;
+}
+
+.layer input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .layer {
+    grid-template-columns: 20px 1fr 34px 34px 34px;
+  }
+  .layer .wave,
+  .layer input[type="range"] {
+    grid-column: 1 / -1;
+  }
+}

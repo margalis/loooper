@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gesture Looper - Phase 3: Audio Core and Layers</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Gesture Looper <span class="tag">phase 3: audio core + layers</span></h1>
+
+      <div class="stage">
+        <!-- The video and the canvas are stacked on top of each other.
+             The canvas draws the hand skeleton over the camera picture. -->
+        <video id="video" playsinline muted></video>
+        <canvas id="overlay"></canvas>
+        <button id="start">Start camera and microphone</button>
+        <div id="status">Use headphones, then click "Start camera and microphone".</div>
+        <!-- Big banner that flashes when a command fires. Not mirrored, so text reads normally. -->
+        <div id="toast"></div>
+      </div>
+
+      <section class="panels">
+        <div class="hand looper">
+          <h2>Looper</h2>
+          <div class="looper-state" id="looper-state">Not started</div>
+          <div class="timeline" id="timeline">
+            <div class="tl-fill" id="tl-fill"></div>
+            <div class="tl-head" id="tl-head"></div>
+          </div>
+          <div class="conf" id="looper-detail">&nbsp;</div>
+          <div class="meter" title="Microphone level"><div class="meter-bar" id="mic-level"></div></div>
+          <div class="conf" id="mic-name">Microphone: not started</div>
+        </div>
+
+        <div class="hand settings">
+          <h2>Settings</h2>
+          <div class="row">
+            <label for="bpm">Tempo</label>
+            <input id="bpm" type="number" min="40" max="200" step="1" value="100" />
+            <span class="unit">BPM</span>
+            <button id="tap" type="button">Tap</button>
+          </div>
+          <div class="row">
+            <label for="bars">Loop length</label>
+            <select id="bars">
+              <option value="1">1 bar</option>
+              <option value="2" selected>2 bars</option>
+              <option value="4">4 bars</option>
+              <option value="8">8 bars</option>
+              <option value="auto">Auto (close with Victory)</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="metronome">Metronome</label>
+            <input id="metronome" type="checkbox" checked />
+            <span class="unit">on / off (key M)</span>
+          </div>
+          <div class="row">
+            <label for="click-always">Click during playback</label>
+            <input id="click-always" type="checkbox" />
+          </div>
+          <div class="row">
+            <label for="trim">Latency trim</label>
+            <input id="trim" type="range" min="-100" max="300" step="5" value="0" />
+            <span class="unit" id="trim-val">0 ms</span>
+          </div>
+          <div class="conf" id="latency-info">&nbsp;</div>
+          <div class="conf" id="lock-info" hidden>Tempo and loop length are locked while a loop exists. Clear all to change them.</div>
+        </div>
+      </section>
+
+      <section class="layers-panel hand" id="layers-panel">
+        <h2>Layers</h2>
+        <div class="session-bar">
+          <button id="save-session" type="button" disabled title="Download the session as a zip file">Save session</button>
+          <button id="load-session" type="button" title="Load a session zip file">Load session</button>
+          <button id="restore-autosave" type="button" disabled title="Bring back the automatically saved session">Restore autosave</button>
+          <button id="forget-autosave" type="button" disabled title="Delete the automatically saved session">Delete autosave</button>
+          <input id="load-file" type="file" accept=".zip,application/zip" hidden />
+        </div>
+        <div id="layers" class="layers"></div>
+        <div class="conf" id="layers-empty">No layers yet. Record one with Victory (or key R).</div>
+        <div class="conf" id="layers-help" hidden>
+          Keys <kbd>1</kbd> to <kbd>9</kbd> mute a layer, <kbd>Shift</kbd> + number solos it. <strong>M</strong> mutes, <strong>S</strong> solos, the slider sets volume.
+        </div>
+        <div class="conf" id="session-info">&nbsp;</div>
+        <div class="conf" id="autosave-info">Autosave: starting up...</div>
+      </section>
+
+      <section class="hud">
+        <div class="hand" id="hand-left">
+          <h2>Left hand <span class="role">loop control</span></h2>
+          <div class="ring" id="left-ring"></div>
+          <div class="gesture" id="left-gesture">-</div>
+          <div class="conf" id="left-conf"></div>
+          <div class="action" id="left-action"></div>
+        </div>
+        <div class="hand" id="hand-right">
+          <h2>Right hand <span class="role">instruments, later</span></h2>
+          <div class="ring" id="right-ring"></div>
+          <div class="gesture" id="right-gesture">-</div>
+          <div class="conf" id="right-conf"></div>
+          <div class="action" id="right-action"></div>
+        </div>
+        <div class="hand">
+          <h2>Performance</h2>
+          <div class="gesture" id="fps">-</div>
+          <div class="conf">frames per second</div>
+        </div>
+      </section>
+
+      <section class="panels">
+        <div class="hand">
+          <h2>Gesture map</h2>
+          <ul id="bindings" class="list"></ul>
+          <div class="conf">
+            Keyboard backup: <kbd>R</kbd> record, <kbd>S</kbd> stop/resume, <kbd>U</kbd> undo, <kbd>C</kbd> clear, <kbd>M</kbd> metronome, <kbd>1</kbd>-<kbd>9</kbd> mute layers.
+          </div>
+        </div>
+        <div class="hand">
+          <h2>Commands fired</h2>
+          <ol id="log" class="list"></ol>
+          <div class="conf" id="log-empty">Nothing yet.</div>
+        </div>
+      </section>
+
+      <p class="help">
+        Wear headphones: the microphone is recorded raw, so speakers would feed back.
+        Hold <strong>Victory</strong> to start: you hear a one-bar count-in, then it records.
+        If your singing lands slightly early or late against the click, nudge <em>Latency trim</em>.
+        Left and right are set by <code>SWAP_HANDEDNESS</code> in <code>src/main.ts</code>.
+      </p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
